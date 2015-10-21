@@ -37,8 +37,9 @@ def resource_update(context, data_dict):
 
 
 def resource_create(context, data_dict):
-    url = ""
-    data_dict['url'] = url
+    if 'url' not in data_dict:
+        url = ""
+        data_dict['url'] = url
     package_dict = create.resource_create(context, data_dict)
     return package_dict
 
