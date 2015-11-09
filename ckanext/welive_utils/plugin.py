@@ -44,10 +44,10 @@ def resource_create(context, data_dict):
     return package_dict
 
 
-class Welive_UtilsPlugin(plugins.SingletonPlugin):
-    plugins.implements(plugins.IConfigurer)
+class Welive_UtilsPlugin(plugins.SingletonPlugin, toolkit.DefaultDatasetForm):
+    plugins.implements(plugins.IConfigurer, inherit=False)
     plugins.implements(plugins.IActions)
-    plugins.implements(plugins.IDatasetForm)
+    plugins.implements(plugins.IDatasetForm, inherit=False)
 
     # IConfigurer
 
@@ -69,12 +69,12 @@ class Welive_UtilsPlugin(plugins.SingletonPlugin):
     def is_fallback(self):
         # Return True to register this plugin as the default handler for
         # package types not handled by any other IDatasetForm plugin.
-        return False
+        return True
 
     def package_types(self):
         # This plugin doesn't handle any special package types, it just
         # registers itself as the default (above).
-        return []
+        return ['datasets']
 
     def create_package_schema(self):
         schema = super(Welive_UtilsPlugin, self).create_package_schema()
@@ -91,9 +91,9 @@ class Welive_UtilsPlugin(plugins.SingletonPlugin):
         })
         return schema
 
-        def show_package_schema(self):
-            schema = super(Welive_UtilsPlugin, self).show_package_schema()
-            schema.update({
-                'language': [toolkit.get_converter('convert_from_extras')]
-            })
-            return schema
+    def show_package_schema(self):
+        schema = super(Welive_UtilsPlugin, self).show_package_schema()
+        schema.update({
+            'language': [toolkit.get_converter('convert_from_extras')]
+        })
+        return schema

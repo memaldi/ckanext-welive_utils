@@ -6,14 +6,15 @@
 <div class="control-group control-full">
   <label class="control-label" for="field-language">{{ _("Language") }}</label>
   <div class="controls">
-      <select name="language" id="field-langauge">
-        <option value="english" {% if data.language == 'english' %} selected {% endif %}>English</option>
-        <option value="italian"{% if data.language == 'italian' %} selected {% endif %}>Italian</option>
-        <option value="finnish"{% if data.language == 'finnish' %} selected {% endif %}>Finnish</option>
-        <option value="serbian"{% if data.language == 'serbian' %} selected {% endif %}>Serbian</option>
-        <option value="spanish"{% if data.language == 'spanish' %} selected {% endif %}>Spanish</option>
-        <option value="basque"{% if data.language == 'basque' %} selected {% endif %}>Basque</option>
+      <select name="language" id="field-language">
+        <option value="en" {% if data.language == "en" %}selected{% endif %}>English</option>
+        <option value="it" {% if data.language == "it" %}selected{% endif %}>Italian</option>
+        <option value="es" {% if data.language == "es" %}selected{% endif %}>Spanish</option>
+        <option value="fi" {% if data.language == "fi" %}selected{% endif %}>Finnish</option>
+        <option value="sr" {% if data.language == "sr" %}selected{% endif %}>Serbian</option>
+        <option value="eu" {% if data.language == "eu" %}selected{% endif %}>Basque</option>
       </select>
   </div>
 </div>
+
 {% endblock %}
