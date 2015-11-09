@@ -1,0 +1,19 @@
+{% ckan_extends %}
+
+{% block package_basic_fields_custom %}
+{{ super() }}
+
+<div class="control-group control-full">
+  <label class="control-label" for="field-language">{{ _("Language") }}</label>
+  <div class="controls">
+      <select name="language" id="field-langauge">
+        <option value="english" {% if data.language == 'english' %} selected {% endif %}>English</option>
+        <option value="italian"{% if data.language == 'italian' %} selected {% endif %}>Italian</option>
+        <option value="finnish"{% if data.language == 'finnish' %} selected {% endif %}>Finnish</option>
+        <option value="serbian"{% if data.language == 'serbian' %} selected {% endif %}>Serbian</option>
+        <option value="spanish"{% if data.language == 'spanish' %} selected {% endif %}>Spanish</option>
+        <option value="basque"{% if data.language == 'basque' %} selected {% endif %}>Basque</option>
+      </select>
+  </div>
+</div>
+{% endblock %}
