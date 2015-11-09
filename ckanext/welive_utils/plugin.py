@@ -74,7 +74,7 @@ class Welive_UtilsPlugin(plugins.SingletonPlugin, toolkit.DefaultDatasetForm):
     def package_types(self):
         # This plugin doesn't handle any special package types, it just
         # registers itself as the default (above).
-        return ['datasets']
+        return ['dataset']
 
     def create_package_schema(self):
         schema = super(Welive_UtilsPlugin, self).create_package_schema()
