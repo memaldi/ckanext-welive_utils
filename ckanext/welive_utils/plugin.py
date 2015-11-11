@@ -22,18 +22,24 @@ log = logging.getLogger(__name__)
 
 
 def send_log(context, pkg_dict, msg, _type):
-    pass
-    # user = context['auth_user_obj']
-    # custom_attr = {'DatasetID': pkg_dict["id"]}
-    # if user is not None:
-    #     custom_attr['UserID'] = user.id
-    # data = {'msg': msg,
-    #         'appId': APP_ID,
-    #         'type': _type,
-    #         'timestamp': time.time(),
-    #         'custom_attr': custom_attr
-    #         }
-    # requests.post(LOGGING_URL + '/log/ods', data=json.dumps(data))
+    current_time = time.time()
+    log.debug('%s at %s' % (msg, current_time))
+    user = context['auth_user_obj']
+    print context
+    custom_attr = {'DatasetID': pkg_dict["id"]}
+    if user is not None:
+        custom_attr['UserID'] = user.id
+    data = {'msg': msg,
+            'appId': APP_ID,
+            'type': _type,
+            'timestamp': current_time,
+            'custom_attr': custom_attr
+            }
+    response = requests.post(LOGGING_URL + '/log/ods', data=json.dumps(data),
+                             headers={'Content-type': 'application/json'},
+                             verify=False)
+    if response.status_code >= 400:
+        log.debug(response.content)
 
 
 @toolkit.side_effect_free
@@ -78,6 +84,8 @@ def resource_show(context, data_dict):
     resource_dict = get.resource_show(context, data_dict)
     send_log(context, resource_dict, 'Resource metadata accessed',
              'ResourceMetadataAccessed')
+
+    return resource_dict
 
 
 def resource_create(context, data_dict):
