@@ -177,7 +177,7 @@ class Welive_UtilsPlugin(plugins.SingletonPlugin, toolkit.DefaultDatasetForm):
     def is_fallback(self):
         # Return True to register this plugin as the default handler for
         # package types not handled by any other IDatasetForm plugin.
-        return True
+        return False
 
     def package_types(self):
         # This plugin doesn't handle any special package types, it just
