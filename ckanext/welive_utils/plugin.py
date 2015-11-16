@@ -3,6 +3,7 @@ import ckan.plugins.toolkit as toolkit
 from ckan.logic.action import get, create, update, delete
 from ckan.model.package import Package
 from ckan.model.resource import Resource
+from ckan.lib.base import c
 import logging
 import ConfigParser
 import os
@@ -21,12 +22,11 @@ APP_ID = config.get(PLUGIN_SECTION, 'app_id')
 log = logging.getLogger(__name__)
 
 
-def send_log(context, pkg_dict, msg, _type):
+def send_log(context, pkg_dict, msg, _type, id_keyword):
     current_time = time.time()
     log.debug('%s at %s' % (msg, current_time))
     user = context['auth_user_obj']
-    print context
-    custom_attr = {'DatasetID': pkg_dict["id"]}
+    custom_attr = {id_keyword: pkg_dict["id"]}
     if user is not None:
         custom_attr['UserID'] = user.id
     data = {'msg': msg,
@@ -42,29 +42,37 @@ def send_log(context, pkg_dict, msg, _type):
         log.debug(response.content)
 
 
+def send_dataset_log(context, pkg_dict, msg, _type):
+    send_log(context, pkg_dict, msg, _type, 'DatasetID')
+
+
+def send_resource_log(context, pkg_dict, msg, _type):
+    send_log(context, pkg_dict, msg, _type, 'ResourceID')
+
+
 @toolkit.side_effect_free
 def package_show(context, data_dict):
     package_dict = get.package_show(context, data_dict)
     package = Package.get(package_dict['id'])
     package_dict['ratings'] = package.get_average_rating()
-    if package_dict['type'] == 'dataset':
-        send_log(context, package_dict, 'Dataset metadata accessed',
-                 'DatasetMetadataAccessed')
+    # if package_dict['type'] == 'dataset':
+    #     send_log(context, package_dict, 'Dataset metadata accessed',
+    #              'DatasetMetadataAccessed')
     return package_dict
 
 
 def package_create(context, data_dict):
     package_dict = create.package_create(context, data_dict)
     if package_dict['type'] == 'dataset':
-        send_log(context, package_dict, 'Dataset created',
-                 'DatasetPublished')
+        send_dataset_log(context, package_dict, 'Dataset created',
+                         'DatasetPublished')
 
 
 def package_update(context, data_dict):
     package_dict = update.package_update(context, data_dict)
     if package_dict['type'] == 'dataset':
-        send_log(context, package_dict, 'Dataset updated',
-                 'DatasetMetadataUpdated')
+        send_dataset_log(context, package_dict, 'Dataset updated',
+                         'DatasetMetadataUpdated')
     return package_dict
 
 
@@ -74,16 +82,16 @@ def package_delete(context, data_dict):
     package = Package.get(data_dict['id'])
     package.purge()
     model.repo.commit_and_remove()
-    send_log(context, data_dict, 'Dataset removed',
-             'DatasetRemoved')
+    send_dataset_log(context, data_dict, 'Dataset removed',
+                     'DatasetRemoved')
     return None
 
 
 @toolkit.side_effect_free
 def resource_show(context, data_dict):
     resource_dict = get.resource_show(context, data_dict)
-    send_log(context, resource_dict, 'Resource metadata accessed',
-             'ResourceMetadataAccessed')
+    # send_resource_log(context, resource_dict, 'Resource metadata accessed',
+    #                   'ResourceMetadataAccessed')
 
     return resource_dict
 
@@ -93,8 +101,8 @@ def resource_create(context, data_dict):
         url = ""
         data_dict['url'] = url
     resource_dict = create.resource_create(context, data_dict)
-    send_log(context, resource_dict, 'Resource created',
-             'ResourcePublished')
+    send_resource_log(context, resource_dict, 'Resource created',
+                      'ResourcePublished')
     return resource_dict
 
 
@@ -113,21 +121,36 @@ def resource_update(context, data_dict):
     for key in resource.extras:
         resource_dict[key] = resource.extras[key]
 
-    send_log(context, resource_dict, 'Resource metadata updated',
-             'ResourceMetadataUpdated')
+    send_resource_log(context, resource_dict, 'Resource metadata updated',
+                      'ResourceMetadataUpdated')
 
     return resource_dict
 
 
 def resource_delete(context, data_dict):
-    resource_dict = delete.resource_delete(context, data_dict)
-    send_log(context, resource_dict, 'Resource removed', 'ResourceRemoved')
+    delete.resource_delete(context, data_dict)
+    send_resource_log(context, data_dict, 'Resource removed',
+                      'ResourceRemoved')
+
+
+def send_dataset_log_helper(pkg_dict, msg, _type):
+    send_dataset_log({'auth_user_obj': c.userobj}, pkg_dict, msg, _type)
+
+
+def send_resource_log_helper(resource_dict, msg, _type):
+    send_resource_log({'auth_user_obj': c.userobj}, resource_dict, msg, _type)
 
 
 class Welive_UtilsPlugin(plugins.SingletonPlugin, toolkit.DefaultDatasetForm):
     plugins.implements(plugins.IConfigurer, inherit=False)
     plugins.implements(plugins.IActions)
     plugins.implements(plugins.IDatasetForm, inherit=False)
+    plugins.implements(plugins.ITemplateHelpers)
+
+    # ITemplateHelpers
+    def get_helpers(self):
+        return {'send_dataset_log_helper': send_dataset_log_helper,
+                'send_resource_log_helper': send_resource_log_helper}
 
     # IConfigurer
 

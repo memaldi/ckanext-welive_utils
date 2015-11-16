@@ -1,0 +1,6 @@
+{% ckan_extends %}
+
+{% block resource %}
+  {{ super() }}
+  {{ h.send_resource_log_helper(res, 'Resource metadata accessed', 'ResourceMetadataAccessed') }}
+{% endblock %}
