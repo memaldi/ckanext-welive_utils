@@ -63,9 +63,13 @@ def package_show(context, data_dict):
 
 def package_create(context, data_dict):
     package_dict = create.package_create(context, data_dict)
-    if package_dict['type'] == 'dataset':
-        send_dataset_log(context, package_dict, 'Dataset created',
-                         'DatasetPublished')
+    log.debug(package_dict)
+    if package_dict is not dict:
+        package = get.package_show(context, {'id': package_dict})
+        if package['type'] == 'dataset':
+            send_dataset_log(context, package, 'Dataset created',
+                             'DatasetPublished')
+    return package_dict
 
 
 def package_update(context, data_dict):
