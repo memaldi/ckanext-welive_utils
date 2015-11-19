@@ -50,6 +50,13 @@ def send_resource_log(context, pkg_dict, msg, _type):
     send_log(context, pkg_dict, msg, _type, 'ResourceID')
 
 
+def string_to_list(string_list):
+    try:
+        return eval(string_list)
+    except:
+        return []
+
+
 @toolkit.side_effect_free
 def package_show(context, data_dict):
     package_dict = get.package_show(context, data_dict)
@@ -154,7 +161,8 @@ class Welive_UtilsPlugin(plugins.SingletonPlugin, toolkit.DefaultDatasetForm):
     # ITemplateHelpers
     def get_helpers(self):
         return {'send_dataset_log_helper': send_dataset_log_helper,
-                'send_resource_log_helper': send_resource_log_helper}
+                'send_resource_log_helper': send_resource_log_helper,
+                'string_to_list': string_to_list}
 
     # IConfigurer
 
