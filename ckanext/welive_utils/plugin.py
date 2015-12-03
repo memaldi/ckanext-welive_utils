@@ -4,6 +4,7 @@ from ckan.logic.action import get, create, update, delete
 from ckan.model.package import Package
 from ckan.model.resource import Resource
 from ckan.lib.base import c
+from ckanext.welive.utils import generate_mapping
 import logging
 import ConfigParser
 import os
@@ -69,8 +70,16 @@ def package_show(context, data_dict):
 
 
 def package_create(context, data_dict):
+    if type(data_dict) is dict:
+        mapped_resources = []
+        for resource in data_dict['resources']:
+            mapped_resource = generate_mapping(context, resource)
+            mapped_resources.append(mapped_resource)
+        data_dict['resources'] = mapped_resources
+
+    log.debug(data_dict)
+
     package_dict = create.package_create(context, data_dict)
-    log.debug(package_dict)
     package = None
     if type(package_dict) is not dict:
         package = get.package_show(context, {'id': package_dict})
@@ -80,6 +89,7 @@ def package_create(context, data_dict):
         if package['type'] == 'dataset':
             send_dataset_log(context, package, 'Dataset created',
                              'DatasetPublished')
+
     return package_dict
 
 
@@ -118,6 +128,7 @@ def resource_create(context, data_dict):
     resource_dict = create.resource_create(context, data_dict)
     send_resource_log(context, resource_dict, 'Resource created',
                       'ResourcePublished')
+
     return resource_dict
 
 
