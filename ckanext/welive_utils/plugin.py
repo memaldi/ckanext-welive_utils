@@ -72,9 +72,10 @@ def package_show(context, data_dict):
 def package_create(context, data_dict):
     if type(data_dict) is dict:
         mapped_resources = []
-        for resource in data_dict['resources']:
-            mapped_resource = generate_mapping(context, resource)
-            mapped_resources.append(mapped_resource)
+        if 'resource' in data_dict:
+            for resource in data_dict['resources']:
+                mapped_resource = generate_mapping(context, resource)
+                mapped_resources.append(mapped_resource)
         data_dict['resources'] = mapped_resources
 
     log.debug(data_dict)
