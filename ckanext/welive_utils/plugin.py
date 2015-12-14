@@ -20,6 +20,10 @@ PLUGIN_SECTION = 'plugin:logging'
 LOGGING_URL = config.get(PLUGIN_SECTION, 'logging_url')
 APP_ID = config.get(PLUGIN_SECTION, 'app_id')
 
+WELIVE_SECTION = 'plugin:welive_utils'
+WELIVE_API = config.get(WELIVE_SECTION, 'welive_api')
+
+
 log = logging.getLogger(__name__)
 
 
@@ -58,6 +62,44 @@ def string_to_list(string_list):
         return []
 
 
+def get_de_JSON(pkg_dict):
+    tag_list = []
+    for tag_dict in pkg_dict["tags"]:
+        tag_list.append(tag_dict["name"])
+    lang = None
+    for extra in pkg_dict['extras']:
+        if extra["key"] == 'language':
+            lang = extra['value']
+    if lang is None:
+        if 'language' in pkg_dict:
+            lang = pkg_dict['language']
+
+    if lang is not None:
+        data = {'lang': lang,
+                'tags': tag_list
+                }
+        return json.dumps(data)
+    return None
+
+
+def update_de(pkg_dict):
+    data_json = get_de_JSON(pkg_dict)
+    if data_json is not None:
+        log.debug('Creating metadata for dataset %s' % pkg_dict['id'])
+        response = requests.put('%s/de/dataset/%s' %
+                                (WELIVE_API, pkg_dict['id']),
+                                data=data_json, verify=False
+                                )
+        log.debug(data_json)
+        log.debug(response.content)
+
+
+def delete_de(pkg_dict):
+    log.debug('Deleting metadata for dataset %s' % pkg_dict['id'])
+    requests.delete('%s/de/dataset/%s' %
+                    (WELIVE_API, pkg_dict['id']), verify=False)
+
+
 @toolkit.side_effect_free
 def package_show(context, data_dict):
     package_dict = get.package_show(context, data_dict)
@@ -78,8 +120,6 @@ def package_create(context, data_dict):
                 mapped_resources.append(mapped_resource)
             data_dict['resources'] = mapped_resources
 
-    log.debug(data_dict)
-
     package_dict = create.package_create(context, data_dict)
     package = None
     if type(package_dict) is not dict:
@@ -90,6 +130,7 @@ def package_create(context, data_dict):
         if package['type'] == 'dataset':
             send_dataset_log(context, package, 'Dataset created',
                              'DatasetPublished')
+            update_de(package)
 
     return package_dict
 
@@ -99,6 +140,7 @@ def package_update(context, data_dict):
     if package_dict['type'] == 'dataset':
         send_dataset_log(context, package_dict, 'Dataset updated',
                          'DatasetMetadataUpdated')
+        update_de(package_dict)
     return package_dict
 
 
@@ -110,6 +152,7 @@ def package_delete(context, data_dict):
     model.repo.commit_and_remove()
     send_dataset_log(context, data_dict, 'Dataset removed',
                      'DatasetRemoved')
+    delete_de(data_dict)
     return None
 
 
@@ -126,6 +169,7 @@ def resource_create(context, data_dict):
     if 'url' not in data_dict:
         url = ""
         data_dict['url'] = url
+    log.debug(data_dict)
     resource_dict = create.resource_create(context, data_dict)
     send_resource_log(context, resource_dict, 'Resource created',
                       'ResourcePublished')
@@ -134,6 +178,7 @@ def resource_create(context, data_dict):
 
 
 def resource_update(context, data_dict):
+    log.debug(data_dict)
     model = context['model']
     resource = Resource.get(data_dict['id'])
     extras = resource.extras
