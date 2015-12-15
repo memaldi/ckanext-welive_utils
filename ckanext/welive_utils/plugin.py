@@ -40,11 +40,14 @@ def send_log(context, pkg_dict, msg, _type, id_keyword):
             'timestamp': current_time,
             'custom_attr': custom_attr
             }
-    response = requests.post(LOGGING_URL + '/log/ods', data=json.dumps(data),
-                             headers={'Content-type': 'application/json'},
-                             verify=False)
-    if response.status_code >= 400:
-        log.debug(response.content)
+    try:
+        response = requests.post(LOGGING_URL + '/log/ods', data=json.dumps(data),
+                                 headers={'Content-type': 'application/json'},
+                                 verify=False)
+        if response.status_code >= 400:
+            log.debug(response.content)
+    except:
+        log.debug("Can't connect to logging service")
 
 
 def send_dataset_log(context, pkg_dict, msg, _type):
@@ -67,9 +70,10 @@ def get_de_JSON(pkg_dict):
     for tag_dict in pkg_dict["tags"]:
         tag_list.append(tag_dict["name"])
     lang = None
-    for extra in pkg_dict['extras']:
-        if extra["key"] == 'language':
-            lang = extra['value']
+    if 'extra' in pkg_dict:
+        for extra in pkg_dict['extras']:
+            if extra["key"] == 'language':
+                lang = extra['value']
     if lang is None:
         if 'language' in pkg_dict:
             lang = pkg_dict['language']
@@ -86,18 +90,24 @@ def update_de(pkg_dict):
     data_json = get_de_JSON(pkg_dict)
     if data_json is not None:
         log.debug('Creating metadata for dataset %s' % pkg_dict['id'])
-        response = requests.put('%s/de/dataset/%s' %
-                                (WELIVE_API, pkg_dict['id']),
-                                data=data_json, verify=False
-                                )
-        log.debug(data_json)
-        log.debug(response.content)
+        try:
+            response = requests.put('%s/de/dataset/%s' %
+                                    (WELIVE_API, pkg_dict['id']),
+                                    data=data_json, verify=False
+                                    )
+            log.debug(data_json)
+            log.debug(response.content)
+        except:
+            log.debug("Can't connect to Decision Engine")
 
 
 def delete_de(pkg_dict):
     log.debug('Deleting metadata for dataset %s' % pkg_dict['id'])
-    requests.delete('%s/de/dataset/%s' %
-                    (WELIVE_API, pkg_dict['id']), verify=False)
+    try:
+        requests.delete('%s/de/dataset/%s' %
+                        (WELIVE_API, pkg_dict['id']), verify=False)
+    except:
+        log.debug("Can't connect to Decision Engine")
 
 
 @toolkit.side_effect_free
@@ -113,6 +123,7 @@ def package_show(context, data_dict):
 
 def package_create(context, data_dict):
     if type(data_dict) is dict:
+        log.debug('Creating mapping...')
         mapped_resources = []
         if 'resources' in data_dict:
             for resource in data_dict['resources']:
@@ -136,6 +147,13 @@ def package_create(context, data_dict):
 
 
 def package_update(context, data_dict):
+    mapped_resources = []
+    if 'resources' in data_dict:
+        for resource in data_dict['resources']:
+            mapped_resource = generate_mapping(context, resource)
+            mapped_resources.append(mapped_resource)
+        data_dict['resources'] = mapped_resources
+
     package_dict = update.package_update(context, data_dict)
     if package_dict['type'] == 'dataset':
         send_dataset_log(context, package_dict, 'Dataset updated',
@@ -169,7 +187,6 @@ def resource_create(context, data_dict):
     if 'url' not in data_dict:
         url = ""
         data_dict['url'] = url
-    log.debug(data_dict)
     resource_dict = create.resource_create(context, data_dict)
     send_resource_log(context, resource_dict, 'Resource created',
                       'ResourcePublished')
