@@ -34,6 +34,14 @@ def send_log(context, pkg_dict, msg, _type, id_keyword):
     custom_attr = {id_keyword: pkg_dict["id"]}
     if user is not None:
         custom_attr['UserID'] = user.id
+    if pkg_dict['title'] is not None:
+        custom_attr['datasetName'] = pkg_dict['title']
+    if pkg_dict['ratings'] is not None:
+        custom_attr['Rating'] = pkg_dict['ratings']
+    if 'organization' in pkg_dict:
+        custom_attr['CityName'] = pkg_dict['organization']['title']
+    if 'type' in pkg_dict:
+        custom_attr['Type'] = pkg_dict['type']
     data = {'msg': msg,
             'appId': APP_ID,
             'type': _type,
