@@ -28,20 +28,32 @@ log = logging.getLogger(__name__)
 
 
 def send_log(context, pkg_dict, msg, _type, id_keyword):
+    print pkg_dict
     current_time = time.time()
     log.debug('%s at %s' % (msg, current_time))
     user = context['auth_user_obj']
     custom_attr = {id_keyword: pkg_dict["id"]}
     if user is not None:
         custom_attr['UserID'] = user.id
-    if pkg_dict['title'] is not None:
-        custom_attr['datasetName'] = pkg_dict['title']
-    if pkg_dict['ratings'] is not None:
-        custom_attr['Rating'] = pkg_dict['ratings']
+    if 'title' in pkg_dict:
+        if pkg_dict['title'] is not None:
+            custom_attr['datasetName'] = pkg_dict['title']
+    if 'ratings' in pkg_dict:
+        if pkg_dict['ratings'] is not None:
+            custom_attr['Rating'] = pkg_dict['ratings']
     if 'organization' in pkg_dict:
         custom_attr['CityName'] = pkg_dict['organization']['title']
     if 'type' in pkg_dict:
-        custom_attr['Type'] = pkg_dict['type']
+        if pkg_dict['type'] == 'dataset':
+            if pkg_dict['private']:
+                custom_attr['Type'] = 'Private'
+            else:
+                custom_attr['Type'] = 'Public'
+    if 'extras' in pkg_dict:
+        for extra in pkg_dict['extras']:
+            if extra['key'] == 'source':
+                custom_attr['Type'] = extra['value']
+
     data = {'msg': msg,
             'appId': APP_ID,
             'type': _type,
