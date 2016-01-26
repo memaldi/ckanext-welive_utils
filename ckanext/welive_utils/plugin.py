@@ -61,7 +61,8 @@ def send_log(context, pkg_dict, msg, _type, id_keyword):
             'custom_attr': custom_attr
             }
     try:
-        response = requests.post(LOGGING_URL + '/log/ods', data=json.dumps(data),
+        response = requests.post(LOGGING_URL + '/log/ods',
+                                 data=json.dumps(data),
                                  headers={'Content-type': 'application/json'},
                                  verify=False)
         if response.status_code >= 400:
@@ -242,6 +243,14 @@ def resource_delete(context, data_dict):
                       'ResourceRemoved')
 
 
+def rating_create(context, data_dict):
+    return_dict = create.rating_create(context, data_dict)
+    package_dict = package_show(context, {'id': data_dict['package']})
+    send_dataset_log(context, package_dict, 'Dataset updated',
+                     'DatasetMetadataUpdated')
+    return return_dict
+
+
 def send_dataset_log_helper(pkg_dict, msg, _type):
     send_dataset_log({'auth_user_obj': c.userobj}, pkg_dict, msg, _type)
 
@@ -279,8 +288,8 @@ class Welive_UtilsPlugin(plugins.SingletonPlugin, toolkit.DefaultDatasetForm):
                 'resource_show': resource_show,
                 'resource_create': resource_create,
                 'resource_update': resource_update,
-                'resource_delete': resource_delete
-                }
+                'resource_delete': resource_delete,
+                'rating_create': rating_create}
 
     # IDatasetForm
 
