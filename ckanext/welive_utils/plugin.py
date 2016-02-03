@@ -46,13 +46,15 @@ def send_log(context, pkg_dict, msg, _type, id_keyword):
     if 'type' in pkg_dict:
         if pkg_dict['type'] == 'dataset':
             if pkg_dict['private']:
-                custom_attr['Type'] = 'Private'
+                custom_attr['DatasetType'] = 'Open Data'
             else:
-                custom_attr['Type'] = 'Public'
+                custom_attr['DatasetType'] = 'Private Data'
     if 'extras' in pkg_dict:
         for extra in pkg_dict['extras']:
             if extra['key'] == 'source':
-                custom_attr['Type'] = extra['value']
+                custom_attr['DatasetType'] = extra['value']
+    if 'format' in pkg_dict:
+        custom_attr['ResourceType'] = pkg_dict['format']
 
     data = {'msg': msg,
             'appId': APP_ID,
