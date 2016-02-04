@@ -28,13 +28,12 @@ log = logging.getLogger(__name__)
 
 
 def send_log(context, pkg_dict, msg, _type, id_keyword):
-    print pkg_dict
     current_time = time.time()
     log.debug('%s at %s' % (msg, current_time))
     user = context['auth_user_obj']
     custom_attr = {id_keyword: pkg_dict["id"]}
     if user is not None:
-        custom_attr['UserID'] = user.id
+        custom_attr['UserID'] = user.name
     if 'title' in pkg_dict:
         if pkg_dict['title'] is not None:
             custom_attr['datasetName'] = pkg_dict['title']
