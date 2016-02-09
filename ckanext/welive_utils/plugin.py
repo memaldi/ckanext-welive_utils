@@ -307,8 +307,8 @@ class Welive_UtilsPlugin(plugins.SingletonPlugin, toolkit.DefaultDatasetForm):
     def create_package_schema(self):
         schema = super(Welive_UtilsPlugin, self).create_package_schema()
         schema.update({
-            'language': [toolkit.get_converter('convert_to_extras'),
-                         toolkit.get_validator('ignore_missing')]
+            'language': [toolkit.get_validator('ignore_missing'),
+                         toolkit.get_converter('convert_to_extras')]
         })
         return schema
 
@@ -316,15 +316,15 @@ class Welive_UtilsPlugin(plugins.SingletonPlugin, toolkit.DefaultDatasetForm):
         schema = super(Welive_UtilsPlugin, self).update_package_schema()
         # our custom field
         schema.update({
-            'language': [toolkit.get_converter('convert_to_extras'),
-                         toolkit.get_validator('ignore_missing')]
+            'language': [toolkit.get_validator('ignore_missing'),
+                         toolkit.get_converter('convert_to_extras')]
         })
         return schema
 
     def show_package_schema(self):
         schema = super(Welive_UtilsPlugin, self).show_package_schema()
         schema.update({
-            'language': [toolkit.get_converter('convert_from_extras'),
-                         toolkit.get_validator('ignore_missing')]
+            'language': [toolkit.get_validator('ignore_missing'),
+                         toolkit.get_converter('convert_from_extras')]
         })
         return schema
