@@ -1,5 +1,8 @@
 import ckan.plugins as plugins
 import ckan.plugins.toolkit as toolkit
+import ckan.model as model
+import ckan.lib.dictization.model_dictize as model_dictize
+import ckan.logic as logic
 from ckan.logic.action import get, create, update, delete
 from ckan.model.package import Package
 from ckan.model.resource import Resource
@@ -25,6 +28,8 @@ WELIVE_API = config.get(WELIVE_SECTION, 'welive_api')
 
 
 log = logging.getLogger(__name__)
+
+NotFound = logic.NotFound
 
 
 def send_log(context, pkg_dict, msg, _type, id_keyword):
@@ -260,6 +265,21 @@ def send_resource_log_helper(resource_dict, msg, _type):
     send_resource_log({'auth_user_obj': c.userobj}, resource_dict, msg, _type)
 
 
+@toolkit.side_effect_free
+def user_by_email(context, data_dict):
+    email = data_dict.get("email", None)
+    if email:
+        user_obj_list = model.User.by_email(email)
+        user_obj = None
+        if (len(user_obj_list) > 0):
+            user_obj = user_obj_list[0]
+        else:
+            raise NotFound
+        user_dict = model_dictize.user_dictize(user_obj, context)
+        return user_dict
+    else:
+        raise NotFound
+
 class Welive_UtilsPlugin(plugins.SingletonPlugin, toolkit.DefaultDatasetForm):
     plugins.implements(plugins.IConfigurer, inherit=False)
     plugins.implements(plugins.IActions)
@@ -290,7 +310,8 @@ class Welive_UtilsPlugin(plugins.SingletonPlugin, toolkit.DefaultDatasetForm):
                 'resource_create': resource_create,
                 'resource_update': resource_update,
                 'resource_delete': resource_delete,
-                'rating_create': rating_create}
+                'rating_create': rating_create,
+                'user_by_email': user_by_email}
 
     # IDatasetForm
 
